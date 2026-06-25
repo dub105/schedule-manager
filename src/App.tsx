@@ -8,6 +8,7 @@ import CalendarView from './components/CalendarView';
 import AllEventsView from './components/AllEventsView';
 import TemplateManager from './components/TemplateManager';
 import EventForm from './components/EventForm';
+import PinnedEventBanner from './components/PinnedEventBanner';
 import './index.css';
 
 type ViewMode = 'today' | 'week' | 'calendar' | 'all' | 'templates';
@@ -44,6 +45,7 @@ export default function App() {
 
         <div className="flex-1 overflow-y-auto p-6">
           <div className="max-w-2xl mx-auto">
+            {currentView !== 'templates' && <PinnedEventBanner />}
             {currentView === 'today' && <TodayView />}
             {currentView === 'week' && <WeekView />}
             {currentView === 'calendar' && <CalendarView />}

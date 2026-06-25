@@ -1,4 +1,4 @@
-import { MapPin, Clock, Edit2, Trash2, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
+import { MapPin, Clock, Edit2, Trash2, RotateCcw, ChevronDown, ChevronUp, Star } from 'lucide-react';
 import { useState } from 'react';
 import type { Event } from '../types';
 import { useStore } from '../store';
@@ -10,7 +10,7 @@ interface Props {
 }
 
 export default function EventCard({ event, expanded: defaultExpanded = false }: Props) {
-  const { toggleBelonging, resetBelongings, deleteEvent, openEventForm } = useStore();
+  const { toggleBelonging, resetBelongings, deleteEvent, openEventForm, togglePin } = useStore();
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -76,6 +76,17 @@ export default function EventCard({ event, expanded: defaultExpanded = false }: 
           )}
         </div>
         <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            onClick={(e) => { e.stopPropagation(); togglePin(event.id); }}
+            className={`p-1.5 rounded-lg transition-colors ${
+              event.pinned
+                ? 'text-yellow-400 hover:text-yellow-500'
+                : 'text-slate-300 hover:text-yellow-400 hover:bg-slate-100'
+            }`}
+            title={event.pinned ? 'ピン留めを外す' : 'ダッシュボードに固定'}
+          >
+            <Star size={14} className={event.pinned ? 'fill-yellow-400' : ''} />
+          </button>
           <button
             onClick={(e) => { e.stopPropagation(); openEventForm(event.id); }}
             className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"

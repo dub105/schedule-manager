@@ -48,6 +48,7 @@ interface AppState {
   deleteEvent: (id: string) => void;
   toggleBelonging: (eventId: string, itemId: string) => void;
   resetBelongings: (eventId: string) => void;
+  togglePin: (eventId: string) => void;
 
   addTemplate: (template: BelongingTemplate) => void;
   updateTemplate: (id: string, updates: Partial<BelongingTemplate>) => void;
@@ -106,6 +107,13 @@ export const useStore = create<AppState>()(
                   belongings: e.belongings.map((b) => ({ ...b, checked: false })),
                 }
               : e
+          ),
+        })),
+
+      togglePin: (eventId) =>
+        set((state) => ({
+          events: state.events.map((e) =>
+            e.id === eventId ? { ...e, pinned: !e.pinned } : e
           ),
         })),
 

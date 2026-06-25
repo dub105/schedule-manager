@@ -17,6 +17,7 @@ export interface Event {
   color: EventColor;
   reminderMinutes?: number; // minutes before event to notify
   templateId?: string;
+  pinned?: boolean;
   createdAt: string;
 }
 
