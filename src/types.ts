@@ -26,6 +26,10 @@ export type PinLabel = 'fun' | 'important' | 'challenge' | 'reminder';
 
 export type EventColor = 'blue' | 'green' | 'purple' | 'orange' | 'red' | 'pink';
 
+export type CourseColor =
+  | 'blue' | 'green' | 'purple' | 'orange' | 'red' | 'pink'
+  | 'teal' | 'cyan' | 'indigo' | 'amber' | 'lime' | 'sky';
+
 export interface BelongingTemplate {
   id: string;
   name: string;
@@ -50,7 +54,7 @@ export interface Course {
   name: string;
   teacher?: string;
   room?: string;
-  color: EventColor;
+  color: CourseColor;
 }
 
 export interface ClassSession {

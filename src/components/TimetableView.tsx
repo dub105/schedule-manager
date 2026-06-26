@@ -4,9 +4,9 @@ import {
   addWeeks, subWeeks,
 } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, X, BookOpen } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, BookOpen, Trash2 } from 'lucide-react';
 import { useStore } from '../store';
-import type { PeriodNumber, Course } from '../types';
+import type { PeriodNumber, Course, CourseColor } from '../types';
 import { PERIODS, COURSE_COLORS } from '../timetableConstants';
 import { generateId } from '../utils';
 
@@ -157,7 +157,7 @@ export default function TimetableView() {
                       const colors = COURSE_COLORS;
                       const usedColors = new Set(courses.map((c) => c.color));
                       const nextColor = colors.find((c) => !usedColors.has(c.value))?.value ?? 'blue';
-                      const newCourse: Course = { id: generateId(), name, color: nextColor as Course['color'] };
+                      const newCourse: Course = { id: generateId(), name, color: nextColor as CourseColor };
                       addCourse(newCourse);
                       setClassSession(dateStr, period.period as PeriodNumber, newCourse.id);
                     }}
@@ -319,7 +319,7 @@ function CourseManager({ onClose }: { onClose: () => void }) {
   const { courses, addCourse, updateCourse, deleteCourse } = useStore();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
-  const [newColor, setNewColor] = useState<Course['color']>('blue');
+  const [newColor, setNewColor] = useState<CourseColor>('blue');
   const [newTeacher, setNewTeacher] = useState('');
   const [newRoom, setNewRoom] = useState('');
 
@@ -358,30 +358,32 @@ function CourseManager({ onClose }: { onClose: () => void }) {
               className="w-24 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="space-y-2">
             <input
               type="text"
               value={newTeacher}
               onChange={(e) => setNewTeacher(e.target.value)}
               placeholder="担当教員"
-              className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
-            <div className="flex gap-1.5">
-              {COURSE_COLORS.map((c) => (
-                <button
-                  key={c.value}
-                  type="button"
-                  onClick={() => setNewColor(c.value as Course['color'])}
-                  className={`w-6 h-6 rounded-full ${c.cls} transition-transform ${newColor === c.value ? 'ring-2 ring-offset-1 ring-slate-400 scale-110' : 'hover:scale-105'}`}
-                />
-              ))}
+            <div className="flex items-center gap-2">
+              <div className="flex flex-wrap gap-1.5 flex-1">
+                {COURSE_COLORS.map((c) => (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => setNewColor(c.value as CourseColor)}
+                    className={`w-6 h-6 rounded-full ${c.cls} transition-transform ${newColor === c.value ? 'ring-2 ring-offset-1 ring-slate-400 scale-110' : 'hover:scale-105'}`}
+                  />
+                ))}
+              </div>
+              <button
+                onClick={handleAdd}
+                className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
+              >
+                追加
+              </button>
             </div>
-            <button
-              onClick={handleAdd}
-              className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
-            >
-              追加
-            </button>
           </div>
         </div>
 
@@ -398,7 +400,7 @@ function CourseManager({ onClose }: { onClose: () => void }) {
                   onCancel={() => setEditingId(null)}
                 />
               ) : (
-                <div key={c.id} className="flex items-center gap-2.5 group">
+                <div key={c.id} className="flex items-center gap-2.5">
                   <span className={`w-3 h-3 rounded-full flex-shrink-0 ${col.cls}`} />
                   <div className="flex-1 min-w-0">
                     <span className="text-sm font-medium text-slate-700">{c.name}</span>
@@ -406,18 +408,19 @@ function CourseManager({ onClose }: { onClose: () => void }) {
                       <span className="text-xs text-slate-400 ml-2">{[c.teacher, c.room].filter(Boolean).join(' / ')}</span>
                     )}
                   </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-1">
                     <button
                       onClick={() => setEditingId(c.id)}
-                      className="text-xs text-slate-400 hover:text-slate-600 px-2 py-0.5 hover:bg-slate-100 rounded transition-colors"
+                      className="text-xs text-slate-400 hover:text-slate-600 px-2 py-1 hover:bg-slate-100 rounded transition-colors"
                     >
                       編集
                     </button>
                     <button
                       onClick={() => deleteCourse(c.id)}
-                      className="text-xs text-slate-400 hover:text-red-500 px-2 py-0.5 hover:bg-red-50 rounded transition-colors"
+                      className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                      title="削除"
                     >
-                      削除
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </div>
@@ -442,7 +445,7 @@ function CourseEditRow({
   const [name, setName] = useState(course.name);
   const [teacher, setTeacher] = useState(course.teacher ?? '');
   const [room, setRoom] = useState(course.room ?? '');
-  const [color, setColor] = useState<Course['color']>(course.color);
+  const [color, setColor] = useState<CourseColor>(course.color);
 
   return (
     <div className="space-y-1.5 bg-slate-50 rounded-xl p-2.5">
@@ -450,15 +453,17 @@ function CourseEditRow({
         <input value={name} onChange={(e) => setName(e.target.value)} className="flex-1 border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
         <input value={room} onChange={(e) => setRoom(e.target.value)} placeholder="教室" className="w-20 border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
       </div>
-      <div className="flex items-center gap-2">
-        <input value={teacher} onChange={(e) => setTeacher(e.target.value)} placeholder="担当教員" className="flex-1 border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
-        <div className="flex gap-1">
-          {COURSE_COLORS.map((c) => (
-            <button key={c.value} onClick={() => setColor(c.value as Course['color'])} className={`w-5 h-5 rounded-full ${c.cls} ${color === c.value ? 'ring-2 ring-offset-1 ring-slate-400' : ''}`} />
-          ))}
+      <div className="space-y-1.5">
+        <input value={teacher} onChange={(e) => setTeacher(e.target.value)} placeholder="担当教員" className="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+        <div className="flex items-center gap-2">
+          <div className="flex flex-wrap gap-1 flex-1">
+            {COURSE_COLORS.map((c) => (
+              <button key={c.value} onClick={() => setColor(c.value as CourseColor)} className={`w-5 h-5 rounded-full ${c.cls} ${color === c.value ? 'ring-2 ring-offset-1 ring-slate-400 scale-110' : 'hover:scale-105'} transition-transform`} />
+            ))}
+          </div>
+          <button onClick={() => onSave({ name, teacher: teacher || undefined, room: room || undefined, color })} className="text-xs bg-blue-500 text-white px-2.5 py-1.5 rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap">保存</button>
+          <button onClick={onCancel} className="text-xs text-slate-500 px-2 py-1.5 hover:bg-slate-200 rounded-lg transition-colors">×</button>
         </div>
-        <button onClick={() => onSave({ name, teacher: teacher || undefined, room: room || undefined, color })} className="text-xs bg-blue-500 text-white px-2.5 py-1.5 rounded-lg hover:bg-blue-600 transition-colors">保存</button>
-        <button onClick={onCancel} className="text-xs text-slate-500 px-2 py-1.5 hover:bg-slate-200 rounded-lg transition-colors">×</button>
       </div>
     </div>
   );

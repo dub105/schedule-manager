@@ -12,8 +12,14 @@ export const PERIODS: Period[] = [
 export const COURSE_COLORS = [
   { value: 'blue',   cls: 'bg-blue-500',   light: 'bg-blue-100',   text: 'text-blue-800',   border: 'border-blue-300' },
   { value: 'green',  cls: 'bg-green-500',  light: 'bg-green-100',  text: 'text-green-800',  border: 'border-green-300' },
+  { value: 'teal',   cls: 'bg-teal-500',   light: 'bg-teal-100',   text: 'text-teal-800',   border: 'border-teal-300' },
+  { value: 'cyan',   cls: 'bg-cyan-500',   light: 'bg-cyan-100',   text: 'text-cyan-800',   border: 'border-cyan-300' },
+  { value: 'sky',    cls: 'bg-sky-500',    light: 'bg-sky-100',    text: 'text-sky-800',    border: 'border-sky-300' },
+  { value: 'indigo', cls: 'bg-indigo-500', light: 'bg-indigo-100', text: 'text-indigo-800', border: 'border-indigo-300' },
   { value: 'purple', cls: 'bg-purple-500', light: 'bg-purple-100', text: 'text-purple-800', border: 'border-purple-300' },
-  { value: 'orange', cls: 'bg-orange-500', light: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-300' },
-  { value: 'red',    cls: 'bg-red-500',    light: 'bg-red-100',    text: 'text-red-800',    border: 'border-red-300' },
   { value: 'pink',   cls: 'bg-pink-500',   light: 'bg-pink-100',   text: 'text-pink-800',   border: 'border-pink-300' },
+  { value: 'red',    cls: 'bg-red-500',    light: 'bg-red-100',    text: 'text-red-800',    border: 'border-red-300' },
+  { value: 'orange', cls: 'bg-orange-500', light: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-300' },
+  { value: 'amber',  cls: 'bg-amber-500',  light: 'bg-amber-100',  text: 'text-amber-800',  border: 'border-amber-300' },
+  { value: 'lime',   cls: 'bg-lime-500',   light: 'bg-lime-100',   text: 'text-lime-800',   border: 'border-lime-300' },
 ] as const;
