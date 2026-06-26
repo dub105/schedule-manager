@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - claude/schedule-belongings-tracker-tnm48u
   workflow_dispatch:
 
 permissions:
