@@ -1,21 +1,22 @@
-import { CalendarDays, Calendar, List, LayoutGrid, Package, Bell, BellOff } from 'lucide-react';
+import { CalendarDays, Calendar, List, LayoutGrid, Package, Bell, BellOff, GraduationCap } from 'lucide-react';
 import { useStore } from '../store';
 import type { ViewMode } from '../types';
 import { requestNotificationPermission } from '../utils';
 import { useState, useEffect } from 'react';
 
 interface NavItem {
-  mode: ViewMode | 'templates';
+  mode: ViewMode | 'templates' | 'timetable';
   icon: React.ReactNode;
   label: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { mode: 'today',    icon: <CalendarDays size={18} />, label: '今日' },
-  { mode: 'week',     icon: <LayoutGrid size={18} />,  label: '今週' },
-  { mode: 'calendar', icon: <Calendar size={18} />,    label: 'カレンダー' },
-  { mode: 'all',      icon: <List size={18} />,        label: 'すべて' },
-  { mode: 'templates', icon: <Package size={18} />,   label: 'テンプレート' },
+  { mode: 'today',     icon: <CalendarDays size={18} />,   label: '今日' },
+  { mode: 'week',      icon: <LayoutGrid size={18} />,     label: '今週' },
+  { mode: 'calendar',  icon: <Calendar size={18} />,       label: 'カレンダー' },
+  { mode: 'all',       icon: <List size={18} />,           label: 'すべて' },
+  { mode: 'timetable', icon: <GraduationCap size={18} />,  label: '時間割' },
+  { mode: 'templates', icon: <Package size={18} />,        label: 'テンプレート' },
 ];
 
 interface Props {

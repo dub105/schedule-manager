@@ -34,3 +34,29 @@ export interface BelongingTemplate {
 }
 
 export type ViewMode = 'today' | 'week' | 'calendar' | 'all';
+
+// Timetable
+export type PeriodNumber = 1 | 2 | 3 | 4 | 5 | 6;
+
+export interface Period {
+  period: PeriodNumber;
+  label: string;
+  start: string;
+  end: string;
+}
+
+export interface Course {
+  id: string;
+  name: string;
+  teacher?: string;
+  room?: string;
+  color: EventColor;
+}
+
+export interface ClassSession {
+  id: string;
+  date: string; // YYYY-MM-DD
+  period: PeriodNumber;
+  courseId: string;
+  note?: string;
+}

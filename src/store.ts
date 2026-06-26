@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Event, BelongingTemplate, ViewMode, PinLabel } from './types';
+import type { Event, BelongingTemplate, ViewMode, PinLabel, Course, ClassSession, PeriodNumber } from './types';
 
 const DEFAULT_TEMPLATES: BelongingTemplate[] = [
   {
@@ -43,6 +43,10 @@ interface AppState {
   isEventFormOpen: boolean;
   editingEventId: string | null;
 
+  // Timetable
+  courses: Course[];
+  classSessions: ClassSession[];
+
   addEvent: (event: Event) => void;
   updateEvent: (id: string, updates: Partial<Event>) => void;
   deleteEvent: (id: string) => void;
@@ -59,6 +63,12 @@ interface AppState {
   setSelectedEventId: (id: string | null) => void;
   openEventForm: (editId?: string) => void;
   closeEventForm: () => void;
+
+  // Timetable actions
+  addCourse: (course: Course) => void;
+  updateCourse: (id: string, updates: Partial<Course>) => void;
+  deleteCourse: (id: string) => void;
+  setClassSession: (date: string, period: PeriodNumber, courseId: string | null) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -70,6 +80,8 @@ export const useStore = create<AppState>()(
       selectedEventId: null,
       isEventFormOpen: false,
       editingEventId: null,
+      courses: [],
+      classSessions: [],
 
       addEvent: (event) =>
         set((state) => ({ events: [...state.events, event] })),
@@ -103,10 +115,7 @@ export const useStore = create<AppState>()(
         set((state) => ({
           events: state.events.map((e) =>
             e.id === eventId
-              ? {
-                  ...e,
-                  belongings: e.belongings.map((b) => ({ ...b, checked: false })),
-                }
+              ? { ...e, belongings: e.belongings.map((b) => ({ ...b, checked: false })) }
               : e
           ),
         })),
@@ -144,6 +153,35 @@ export const useStore = create<AppState>()(
         set({ isEventFormOpen: true, editingEventId: editId ?? null }),
       closeEventForm: () =>
         set({ isEventFormOpen: false, editingEventId: null }),
+
+      addCourse: (course) =>
+        set((state) => ({ courses: [...state.courses, course] })),
+
+      updateCourse: (id, updates) =>
+        set((state) => ({
+          courses: state.courses.map((c) => (c.id === id ? { ...c, ...updates } : c)),
+        })),
+
+      deleteCourse: (id) =>
+        set((state) => ({
+          courses: state.courses.filter((c) => c.id !== id),
+          classSessions: state.classSessions.filter((s) => s.courseId !== id),
+        })),
+
+      setClassSession: (date, period, courseId) =>
+        set((state) => {
+          const filtered = state.classSessions.filter(
+            (s) => !(s.date === date && s.period === period)
+          );
+          if (!courseId) return { classSessions: filtered };
+          const newSession: ClassSession = {
+            id: `${date}-${period}`,
+            date,
+            period,
+            courseId,
+          };
+          return { classSessions: [...filtered, newSession] };
+        }),
     }),
     { name: 'schedule-manager-storage' }
   )
