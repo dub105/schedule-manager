@@ -186,8 +186,10 @@ interface CellProps {
 
 function TimetableCell({ course, isToday, courses, onSelect, onQuickAdd }: CellProps) {
   const [open, setOpen] = useState(false);
+  const [openUpward, setOpenUpward] = useState(false);
   const [quickInput, setQuickInput] = useState('');
   const ref = useRef<HTMLDivElement>(null);
+  const cellRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -198,15 +200,25 @@ function TimetableCell({ course, isToday, courses, onSelect, onQuickAdd }: CellP
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
+  function handleOpen() {
+    if (cellRef.current) {
+      const rect = cellRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setOpenUpward(spaceBelow < 280);
+    }
+    setOpen(true);
+  }
+
   const cc = course ? getCourseColor(course.color) : null;
 
   return (
     <div
+      ref={cellRef}
       className={`relative border-r border-slate-100 last:border-0 min-h-[68px] cursor-pointer transition-colors
         ${isToday ? 'bg-blue-50/40' : 'hover:bg-slate-50'}
         ${open ? 'bg-slate-50' : ''}
       `}
-      onClick={() => setOpen(true)}
+      onClick={handleOpen}
     >
       {/* Course chip */}
       <div className="p-1.5 h-full flex flex-col">
@@ -228,8 +240,8 @@ function TimetableCell({ course, isToday, courses, onSelect, onQuickAdd }: CellP
       {open && (
         <div
           ref={ref}
-          className="absolute z-40 top-0 left-1/2 -translate-x-1/2 mt-0 bg-white rounded-xl shadow-xl border border-slate-100 w-44 py-1 overflow-hidden"
-          style={{ top: '100%', marginTop: 4 }}
+          className="absolute z-40 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-xl border border-slate-100 w-44 py-1 overflow-hidden"
+          style={openUpward ? { bottom: '100%', marginBottom: 4 } : { top: '100%', marginTop: 4 }}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-100">
