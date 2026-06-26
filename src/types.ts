@@ -18,8 +18,11 @@ export interface Event {
   reminderMinutes?: number; // minutes before event to notify
   templateId?: string;
   pinned?: boolean;
+  pinLabel?: PinLabel;
   createdAt: string;
 }
+
+export type PinLabel = 'fun' | 'important' | 'challenge' | 'reminder';
 
 export type EventColor = 'blue' | 'green' | 'purple' | 'orange' | 'red' | 'pink';
 

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Event, BelongingTemplate, ViewMode } from './types';
+import type { Event, BelongingTemplate, ViewMode, PinLabel } from './types';
 
 const DEFAULT_TEMPLATES: BelongingTemplate[] = [
   {
@@ -48,7 +48,8 @@ interface AppState {
   deleteEvent: (id: string) => void;
   toggleBelonging: (eventId: string, itemId: string) => void;
   resetBelongings: (eventId: string) => void;
-  togglePin: (eventId: string) => void;
+  pinEvent: (eventId: string, label: PinLabel) => void;
+  unpinEvent: (eventId: string) => void;
 
   addTemplate: (template: BelongingTemplate) => void;
   updateTemplate: (id: string, updates: Partial<BelongingTemplate>) => void;
@@ -110,10 +111,17 @@ export const useStore = create<AppState>()(
           ),
         })),
 
-      togglePin: (eventId) =>
+      pinEvent: (eventId, label) =>
         set((state) => ({
           events: state.events.map((e) =>
-            e.id === eventId ? { ...e, pinned: !e.pinned } : e
+            e.id === eventId ? { ...e, pinned: true, pinLabel: label } : e
+          ),
+        })),
+
+      unpinEvent: (eventId) =>
+        set((state) => ({
+          events: state.events.map((e) =>
+            e.id === eventId ? { ...e, pinned: false, pinLabel: undefined } : e
           ),
         })),
 
