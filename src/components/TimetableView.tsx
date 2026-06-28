@@ -153,13 +153,16 @@ export default function TimetableView() {
                     isToday={today}
                     courses={courses}
                     onSelect={(courseId) => setClassSession(dateStr, period.period as PeriodNumber, courseId)}
-                    onQuickAdd={(name) => {
-                      const colors = COURSE_COLORS;
+                    onBulkSelect={(courseId, periods) => {
+                      periods.forEach((p) => setClassSession(dateStr, p, courseId));
+                    }}
+                    onQuickAdd={(name, bulk, periods) => {
                       const usedColors = new Set(courses.map((c) => c.color));
-                      const nextColor = colors.find((c) => !usedColors.has(c.value))?.value ?? 'blue';
+                      const nextColor = COURSE_COLORS.find((c) => !usedColors.has(c.value))?.value ?? 'blue';
                       const newCourse: Course = { id: generateId(), name, color: nextColor as CourseColor };
                       addCourse(newCourse);
-                      setClassSession(dateStr, period.period as PeriodNumber, newCourse.id);
+                      const targets = bulk ? periods : [period.period as PeriodNumber];
+                      targets.forEach((p) => setClassSession(dateStr, p, newCourse.id));
                     }}
                   />
                 );
@@ -181,15 +184,21 @@ interface CellProps {
   isToday: boolean;
   courses: Course[];
   onSelect: (courseId: string | null) => void;
-  onQuickAdd: (name: string) => void;
+  onBulkSelect: (courseId: string | null, periods: PeriodNumber[]) => void;
+  onQuickAdd: (name: string, bulk: boolean, periods: PeriodNumber[]) => void;
 }
 
-function TimetableCell({ course, isToday, courses, onSelect, onQuickAdd }: CellProps) {
+function TimetableCell({ period, course, isToday, courses, onSelect, onBulkSelect, onQuickAdd }: CellProps) {
   const [open, setOpen] = useState(false);
   const [openUpward, setOpenUpward] = useState(false);
+  const [bulkMode, setBulkMode] = useState(false);
   const [quickInput, setQuickInput] = useState('');
   const ref = useRef<HTMLDivElement>(null);
   const cellRef = useRef<HTMLDivElement>(null);
+
+  // Periods affected in bulk mode: this period + next 2 (up to period 6)
+  const bulkPeriods = ([period, period + 1, period + 2].filter((p) => p <= 6) as PeriodNumber[]);
+  const activePeriods = bulkMode ? bulkPeriods : [period];
 
   useEffect(() => {
     if (!open) return;
@@ -204,9 +213,24 @@ function TimetableCell({ course, isToday, courses, onSelect, onQuickAdd }: CellP
     if (cellRef.current) {
       const rect = cellRef.current.getBoundingClientRect();
       const spaceBelow = window.innerHeight - rect.bottom;
-      setOpenUpward(spaceBelow < 280);
+      setOpenUpward(spaceBelow < 340);
     }
     setOpen(true);
+  }
+
+  function handleSelect(courseId: string | null) {
+    if (bulkMode) {
+      onBulkSelect(courseId, activePeriods);
+    } else {
+      onSelect(courseId);
+    }
+    setOpen(false);
+  }
+
+  function handleQuickAdd(name: string) {
+    onQuickAdd(name, bulkMode, activePeriods);
+    setQuickInput('');
+    setOpen(false);
   }
 
   const cc = course ? getCourseColor(course.color) : null;
@@ -240,10 +264,11 @@ function TimetableCell({ course, isToday, courses, onSelect, onQuickAdd }: CellP
       {open && (
         <div
           ref={ref}
-          className="absolute z-40 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-xl border border-slate-100 w-44 py-1 overflow-hidden"
+          className="absolute z-40 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-xl border border-slate-100 w-48 overflow-hidden"
           style={openUpward ? { bottom: '100%', marginBottom: 4 } : { top: '100%', marginTop: 4 }}
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Header */}
           <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-100">
             <span className="text-xs font-semibold text-slate-500">科目を選択</span>
             <button onClick={() => setOpen(false)} className="text-slate-300 hover:text-slate-500">
@@ -251,13 +276,36 @@ function TimetableCell({ course, isToday, courses, onSelect, onQuickAdd }: CellP
             </button>
           </div>
 
-          <div className="max-h-48 overflow-y-auto">
+          {/* Bulk toggle */}
+          <div className="px-2.5 pt-2 pb-1.5">
+            <div className="flex rounded-lg border border-slate-200 overflow-hidden text-[11px] font-medium">
+              <button
+                onClick={(e) => { e.stopPropagation(); setBulkMode(false); }}
+                className={`flex-1 py-1 transition-colors ${!bulkMode ? 'bg-blue-500 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
+              >
+                1コマ
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setBulkMode(true); }}
+                className={`flex-1 py-1 transition-colors ${bulkMode ? 'bg-blue-500 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
+              >
+                3コマ連続
+              </button>
+            </div>
+            {bulkMode && (
+              <p className="mt-1 text-[10px] text-blue-500 text-center">
+                {activePeriods.map((p) => `${p}限`).join('・')} に登録
+              </p>
+            )}
+          </div>
+
+          <div className="max-h-40 overflow-y-auto border-t border-slate-100">
             {course && (
               <button
                 className="w-full text-left px-3 py-2 text-xs text-red-500 hover:bg-red-50 transition-colors"
-                onClick={() => { onSelect(null); setOpen(false); }}
+                onClick={() => handleSelect(null)}
               >
-                ✕ 授業を削除
+                {bulkMode ? `✕ ${activePeriods.map((p) => `${p}限`).join('・')}を削除` : '✕ 授業を削除'}
               </button>
             )}
             {courses.map((c) => {
@@ -266,7 +314,7 @@ function TimetableCell({ course, isToday, courses, onSelect, onQuickAdd }: CellP
                 <button
                   key={c.id}
                   className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-slate-50 ${c.id === course?.id ? 'bg-slate-50' : ''}`}
-                  onClick={() => { onSelect(c.id); setOpen(false); }}
+                  onClick={() => handleSelect(c.id)}
                 >
                   <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${col.cls}`} />
                   <span className="text-slate-700 text-xs truncate">{c.name}</span>
@@ -284,23 +332,13 @@ function TimetableCell({ course, isToday, courses, onSelect, onQuickAdd }: CellP
                 value={quickInput}
                 onChange={(e) => setQuickInput(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && quickInput.trim()) {
-                    onQuickAdd(quickInput.trim());
-                    setQuickInput('');
-                    setOpen(false);
-                  }
+                  if (e.key === 'Enter' && quickInput.trim()) handleQuickAdd(quickInput.trim());
                 }}
                 placeholder="科目名を入力..."
                 className="flex-1 text-xs border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400 min-w-0"
               />
               <button
-                onClick={() => {
-                  if (quickInput.trim()) {
-                    onQuickAdd(quickInput.trim());
-                    setQuickInput('');
-                    setOpen(false);
-                  }
-                }}
+                onClick={() => { if (quickInput.trim()) handleQuickAdd(quickInput.trim()); }}
                 className="px-2 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs transition-colors"
               >
                 追加
