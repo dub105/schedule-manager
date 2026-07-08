@@ -1,7 +1,14 @@
-import { CalendarDays, Calendar, List, LayoutGrid, Package, Bell, BellOff, GraduationCap } from 'lucide-react';
+import { CalendarDays, Calendar, List, LayoutGrid, Package, Bell, BellOff, GraduationCap, Sunrise } from 'lucide-react';
 import { useStore } from '../store';
 import type { ViewMode } from '../types';
 import { requestNotificationPermission } from '../utils';
+import {
+  isNative,
+  requestPermission,
+  scheduleMorningNotification,
+  cancelMorningNotification,
+  isMorningNotificationScheduled,
+} from '../services/notifications';
 import { useState, useEffect } from 'react';
 
 interface NavItem {
@@ -27,14 +34,33 @@ interface Props {
 export default function Sidebar({ currentView, onViewChange }: Props) {
   const { events } = useStore();
   const [notifPerm, setNotifPerm] = useState<NotificationPermission>('default');
+  const [morningEnabled, setMorningEnabled] = useState(false);
 
   useEffect(() => {
     if ('Notification' in window) setNotifPerm(Notification.permission);
+    isMorningNotificationScheduled().then(setMorningEnabled);
   }, []);
 
   async function handleNotifToggle() {
-    const perm = await requestNotificationPermission();
-    setNotifPerm(perm);
+    if (isNative) {
+      const granted = await requestPermission();
+      setNotifPerm(granted ? 'granted' : 'denied');
+    } else {
+      const perm = await requestNotificationPermission();
+      setNotifPerm(perm);
+    }
+  }
+
+  async function handleMorningToggle() {
+    const granted = await requestPermission();
+    if (!granted) return;
+    if (morningEnabled) {
+      await cancelMorningNotification();
+      setMorningEnabled(false);
+    } else {
+      await scheduleMorningNotification();
+      setMorningEnabled(true);
+    }
   }
 
   const todayCount = events.filter((e) => {
@@ -81,8 +107,9 @@ export default function Sidebar({ currentView, onViewChange }: Props) {
         ))}
       </nav>
 
-      {/* Notification toggle */}
-      <div className="p-3 border-t border-slate-100">
+      {/* Notification settings */}
+      <div className="p-3 border-t border-slate-100 space-y-1">
+        {/* General notification permission */}
         <button
           onClick={handleNotifToggle}
           className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs transition-colors ${
@@ -95,6 +122,22 @@ export default function Sidebar({ currentView, onViewChange }: Props) {
           {notifPerm === 'granted' ? <Bell size={15} /> : <BellOff size={15} />}
           <span>{notifPerm === 'granted' ? '通知ON' : '通知を有効にする'}</span>
         </button>
+
+        {/* Morning notification (native only) */}
+        {isNative && (
+          <button
+            onClick={handleMorningToggle}
+            className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs transition-colors ${
+              morningEnabled
+                ? 'text-orange-600 bg-orange-50'
+                : 'text-slate-400 hover:bg-slate-50'
+            }`}
+            title="毎朝5:30に予定確認の通知"
+          >
+            <Sunrise size={15} />
+            <span>{morningEnabled ? '朝の通知 5:30 ON' : '朝の通知を設定'}</span>
+          </button>
+        )}
       </div>
     </aside>
   );
